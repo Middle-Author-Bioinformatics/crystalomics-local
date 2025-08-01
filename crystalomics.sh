@@ -21,8 +21,8 @@ cif=$(grep 'CIF' ${DIR}/form-data.txt | cut -d ' ' -f3)
 
 # Set PATH to include Conda and script locations
 export PATH="/home/ark/miniconda3/bin:/usr/local/bin:/usr/bin:/bin:/home/ark/MAB/bin/crystalomics-local:$PATH"
-eval "$(/home/ark/miniconda3/bin/conda shell.bash hook)"
-conda activate crystalomics
+#eval "$(/home/ark/miniconda3/bin/conda shell.bash hook)"
+#conda activate crystalomics
 
 if [ $? -ne 0 ]; then
     echo "Error: Failed to activate Conda environment."
@@ -49,11 +49,11 @@ done
 # **************************************************************************************************
 if [ $? -ne 0 ]; then
     echo "Error: Crystalomics failed."
-    conda deactivate
+#    conda deactivate
     exit 1
 fi
-conda deactivate
-sleep 5
+#conda deactivate
+#sleep 5
 
 # Archive results
 mv /home/ark/MAB/crystalomics/completed/${ID}-results ./${ID}-results
@@ -87,7 +87,7 @@ python3 /home/ark/MAB/bin/crystalomics-local/send_email.py \
 
 if [ $? -ne 0 ]; then
     echo "Error: send_email.py failed."
-    conda deactivate
+#    conda deactivate
     exit 1
 fi
 
@@ -95,7 +95,7 @@ sleep 5
 
 #sudo rm -rf ${DIR}
 
-conda deactivate
+#conda deactivate
 echo "Crystalomics completed successfully."
 
 
