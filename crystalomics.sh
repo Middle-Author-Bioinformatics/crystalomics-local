@@ -12,6 +12,7 @@ KEY=$1
 ID=$KEY
 DIR=/home/ark/MAB/crystalomics/${ID}
 OUT=/home/ark/MAB/crystalomics/completed/${ID}-results
+mkdir -p ${OUT}
 
 
 name=$(grep 'Name' ${DIR}/form-data.txt | cut -d ' ' -f2)
