@@ -7,8 +7,8 @@ import subprocess
 
 # S3 bucket name and folder prefix
 BUCKET_NAME = 'breseqbucket'
-FOLDER_PREFIX = 'magiclamp-'
-LOG_FILE = '/home/ark/MAB/magiclamp/processed_folders.log'
+FOLDER_PREFIX = 'crystalomics-'
+LOG_FILE = '/home/ark/MAB/crystalomics/processed_folders.log'
 
 # Initialize S3 client (using default credentials)
 s3 = boto3.client('s3')
@@ -77,17 +77,17 @@ def download_folder(bucket_name, folder_name, local_dir):
 
 def process_folder(folder_name):
     """Process the folder by downloading its contents and performing analysis."""
-    local_dir = f"/home/ark/MAB/magiclamp/{folder_name}"
+    local_dir = f"/home/ark/MAB/crystalomics/{folder_name}"
     print(f"Processing folder: {folder_name}")
     download_folder(BUCKET_NAME, folder_name, local_dir)
 
-    # Run magiclamp.sh script with folder_name as argument
-    magiclamp_script_path = '/home/ark/MAB/bin/magiclamp-local/magiclamp.sh'
+    # Run crystalomics.sh script with folder_name as argument
+    crystalomics_script_path = '/home/ark/MAB/bin/crystalomics-local/crystalomics.sh'
     try:
-        subprocess.run([magiclamp_script_path, folder_name], check=True)
-        print(f"Successfully processed folder {folder_name} using magiclamp.sh.")
+        subprocess.run([crystalomics_script_path, folder_name], check=True)
+        print(f"Successfully processed folder {folder_name} using crystalomics.sh.")
     except subprocess.CalledProcessError as e:
-        print(f"Error running magiclamp.sh on folder {folder_name}: {e}")
+        print(f"Error running crystalomics.sh on folder {folder_name}: {e}")
 
 def main():
     """Main function to check for new folders and trigger processing."""
