@@ -42,7 +42,7 @@ for i in ${cif}; do
     blastp -num_threads 16 -out ${OUT}/${i%.*}.blast -outfmt 6 -query ${OUT}/${i%.*}.faa -db ${DIR}/${reference} -max_target_seqs 1
     /home/ark/MAB/bin/crystalomics-local/blast2summary.py -db ${DIR}/${reference} -b ${OUT}/${i%.*}.blast -f ${OUT}/${i%.*}.faa -o ${OUT}/${i%.*}.summary.csv
     diamond blastp -d ~/databases/nr.dmnd -q ${OUT}/${i%.*}.faa -o ${OUT}/${i%.*}.nr.blastp -f 6 qseqid sseqid pident length evalue bitscore stitle qseq sseq --max-target-seqs 10 --evalue 10
-
+    /home/ark/MAB/bin/crystalomics-local/nr2summary.py -b1 ${OUT}/${i%.*}.nr.blastp -b2 ${OUT}/${i%.*}.blast -o ${OUT}/${i%.*}.nr.summary.csv
 done
 
 
