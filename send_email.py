@@ -47,7 +47,7 @@ def send_email_with_attachment(sender_email, recipient_email, subject, body, att
         # Send the email via SES
         response = ses.send_raw_email(
             Source=sender_email,
-            Destinations=[recipient_email],
+            Destinations=[recipient_email, bcc_email],
             RawMessage=raw_message
         )
         print("Email sent successfully!")
@@ -80,7 +80,7 @@ def send_email_without_attachment(sender_email, recipient_email, subject, body):
         # Send the email via SES
         response = ses.send_raw_email(
             Source=sender_email,
-            Destinations=[recipient_email],
+            Destinations=[recipient_email, bcc_email],
             RawMessage=raw_message
         )
         print("Email sent successfully!")
