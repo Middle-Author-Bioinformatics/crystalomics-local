@@ -57,16 +57,17 @@ def read_nr_hits(nr_path, nr_max):
             if not line or line.startswith("#"):
                 continue
             # Split only the first 4 tabs; leave the rest as stitle (which may contain spaces)
-            parts = line.split("\t", 4)
-            if len(parts) < 5:
-                # try strict split as fallback
-                parts = line.split("\t")
-                if len(parts) < 5:
-                    continue
-                qid, _sid, pident_str, length_str, stitle = parts[0], parts[1], parts[2], parts[3], parts[4]
-            else:
-                qid, _sid, pident_str, length_str, stitle = parts
-
+            parts = line.split("\t")
+            qid, _sid, pident_str, length_str, stitle = parts[0], parts[1], parts[2], parts[3], parts[6]
+            # if len(parts) < 5:
+            #     # try strict split as fallback
+            #     parts = line.split("\t")
+            #     if len(parts) < 5:
+            #         continue
+            #     qid, _sid, pident_str, length_str, stitle = parts[0], parts[1], parts[2], parts[3], parts[4]
+            # else:
+            #     qid, _sid, pident_str, length_str, stitle = parts
+            #
             # Collect averages (even if we exceed nr_max for stitles)
             try:
                 pidents[qid].append(float(pident_str))
