@@ -26,7 +26,7 @@ def main():
 
     with open(args.blast) as blast_file, open(args.output, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["query_id", "subject_id", "peptide_seq", "full_subject_header"])
+        writer.writerow(["query_id", "subject_id", "ID", "aln_len", "evalue", "peptide_seq"])
 
         for line in blast_file:
             fields = line.strip().split("\t")
@@ -34,8 +34,11 @@ def main():
                 continue
             query_id, subject_id = fields[0], fields[1]
             peptide_seq = query_seqs.get(query_id, "NA")
-            full_header = subject_headers.get(subject_id, "NA")
-            writer.writerow([query_id, subject_id, peptide_seq, full_header])
+            evalue = fields[10]
+            ID = fields[2]
+            aln = fields[3]
+
+            writer.writerow([query_id, subject_id, ID, aln, evalue, peptide_seq])
 
 if __name__ == "__main__":
     main()
