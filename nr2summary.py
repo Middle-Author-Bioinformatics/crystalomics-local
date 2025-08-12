@@ -7,24 +7,24 @@ from statistics import mean
 # Column indices (0-based) as requested:
 NR_PIDENT_IDX = 2
 NR_LENGTH_IDX = 3
-NR_EVALUE_IDX = 4      # user-specified
+NR_EVALUE_IDX = 4      # NR evalue is the 5th column
 REF_PIDENT_IDX = 2
 REF_LENGTH_IDX = 3
-REF_EVALUE_IDX = 10    # user-specified (default BLAST outfmt 6)
+REF_EVALUE_IDX = 10    # local ref evalue in default 12-col outfmt6
 
 def parse_args():
     p = argparse.ArgumentParser(
         description=(
             "Combine local BLAST best hit and NR top-N hits into a summary.\n"
-            "NR/DIAMOND must be outfmt 6 with columns including pident,length,evalue and stitle (stitle last).\n"
-            "Local REF is BLAST outfmt 6; supports 12-col default (evalue at idx 10),\n"
-            "4-col (qseqid sseqid pident length), or 2-col (qseqid sseqid)."
+            "NR/DIAMOND must be -outfmt 6 with: qseqid sseqid pident length evalue stitle qseq sseq\n"
+            "  (i.e., evalue at idx 4; last three columns are stitle, qseq, sseq → stitle is idx -3).\n"
+            "Local REF is BLAST -outfmt 6; supports 12-col default (evalue@10), 4-col, or 2-col."
         )
     )
     p.add_argument("-b1", "--nr", required=True,
-                   help="NR/DIAMOND file (outfmt 6; expects pident@2, length@3, evalue@4, stitle last).")
+                   help="NR/DIAMOND file (expects pident@2, length@3, evalue@4, and stitle at -3).")
     p.add_argument("-b2", "--ref", required=True,
-                   help="Local BLAST file (outfmt 6). Supports 12-col default (evalue@10), 4-col, or 2-col.")
+                   help="Local BLAST file. Supports 12-col default (evalue@10), 4-col, or 2-col.")
     p.add_argument("-o", "--out", required=True, help="Output TSV path.")
     p.add_argument("--nr-max", type=int, default=10,
                    help="Number of NR titles to report per query (default: 10).")
@@ -62,11 +62,11 @@ def read_ref_best(ref_path):
 def read_nr_hits(nr_path, nr_max):
     """
     Read NR hits, keeping:
-      - up to nr_max stitles per query (file order; stitle assumed to be the LAST column)
+      - up to nr_max stitles per query (file order)
       - all pident, length, evalue values per query (for averaging)
 
     Expected indices:
-      pident@2, length@3, evalue@4, stitle@last
+      pident@2, length@3, evalue@4, stitle@-3 (with trailing qseq, sseq)
     """
     stitles = defaultdict(list)   # qid -> [stitle...]
     pidents = defaultdict(list)   # qid -> [float ...]
@@ -79,15 +79,25 @@ def read_nr_hits(nr_path, nr_max):
             if not line or line.startswith("#"):
                 continue
             parts = line.split("\t")
+            # Need at least the first 5 fields for pident/length/evalue
             if len(parts) <= max(NR_PIDENT_IDX, NR_LENGTH_IDX, NR_EVALUE_IDX):
-                # Not enough columns; skip
                 continue
 
             qid = parts[0]
             pident_str = parts[NR_PIDENT_IDX]
             length_str = parts[NR_LENGTH_IDX]
             evalue_str = parts[NR_EVALUE_IDX]
-            stitle = parts[-1]  # safest: stitle is last field
+
+            # stitle handling:
+            # Preferred: ... evalue, stitle, qseq, sseq  => stitle is -3
+            if len(parts) >= 8:
+                stitle = parts[-3]
+            # Fallback: if file lacks qseq/sseq but has stitle at fixed idx 5
+            elif len(parts) >= 6:
+                stitle = parts[5]
+            else:
+                # Last-resort fallback
+                stitle = parts[-1]
 
             # Collect for averages
             try:
@@ -128,16 +138,6 @@ def main():
         all_queries = sorted(all_queries)
 
     with open(args.out, "w", encoding="utf-8") as out:
-        # Header:
-        # 1) query_id
-        # 2) subject_id_ref
-        # 3) ref_perc_id
-        # 4) ref_aln_len
-        # 5) ref_evalue
-        # 6) avg_seqid (NR mean pident)
-        # 7) avg_align_len (NR mean length)
-        # 8) avg_evalue (NR mean evalue)
-        # 9-... stitle_1..stitle_N
         header = ([
             "query_id", "subject_id_ref",
             "ref_perc_id", "ref_aln_len", "ref_evalue",
@@ -147,12 +147,12 @@ def main():
 
         for q in all_queries:
             ref_sid, ref_pid, ref_alen, ref_eval = ref_best.get(q, ("", "", "", ""))
-            avg_pid = fmt_avg(pidents.get(q, []), places=4)
-            avg_len = fmt_avg_len(lengths.get(q, []))
-            avg_eval = fmt_avg(evalues.get(q, []), places=6)  # a bit more precision for evalues
+            avg_pid  = fmt_avg(pidents.get(q, []), places=4)
+            avg_len  = fmt_avg_len(lengths.get(q, []))
+            avg_eval = fmt_avg(evalues.get(q, []), places=6)
             titles = stitles.get(q, [])
             if len(titles) < args.nr_max:
-                titles = titles + [""] * (args.nr_max - len(titles))
+                titles += [""] * (args.nr_max - len(titles))
             else:
                 titles = titles[:args.nr_max]
 
