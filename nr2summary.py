@@ -156,7 +156,7 @@ def main():
             else:
                 titles = titles[:args.nr_max]
 
-            row = [q, ref_sid, ref_pid, ref_alen, ref_eval, avg_pid, avg_len, avg_eval] + titles
+            row = [q, ref_pid, ref_alen, ref_eval, ref_sid, avg_pid, avg_len, avg_eval] + titles
             out.write("\t".join(row) + "\n")
 
 if __name__ == "__main__":
