@@ -139,10 +139,10 @@ def main():
 
     with open(args.out, "w", encoding="utf-8") as out:
         header = ([
-            "query_id", "subject_id_ref",
-            "ref_perc_id", "ref_aln_len", "ref_evalue",
-            "nr_seqid", "nr_align_len", "nr_evalue"
-        ] + [f"nr_match{i}" for i in range(1, args.nr_max + 1)])
+            "query_id",
+            "ref_perc_id", "ref_aln_len", "ref_evalue", "ref_id",
+            "nr_perc_id", "nr_aln_len", "nr_evalue"
+        ] + [f"nr_match_{i}" for i in range(1, args.nr_max + 1)])
         out.write("\t".join(header) + "\n")
 
         for q in all_queries:
