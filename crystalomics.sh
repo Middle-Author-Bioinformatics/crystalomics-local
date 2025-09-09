@@ -38,8 +38,14 @@ sleep 5
 for i in ${cif}; do
     echo "Processing CIF file: ${i}"
     /home/ark/MAB/bin/crystalomics-local/cif-peptide-extract.py -cif ${DIR}/${i} -faa ${OUT}/${i%.*}.faa -txt ${OUT}/${i%.*}.txt
+
+
     makeblastdb -dbtype prot -in ${DIR}/${reference} -out ${DIR}/${reference}
     blastp -num_threads 16 -out ${OUT}/${i%.*}.ref.blast -outfmt 6 -query ${OUT}/${i%.*}.faa -db ${DIR}/${reference} -max_target_seqs 1
+
+    makeblastdb -dbtype nucl -in ${DIR}/${reference} -out ${DIR}/${reference}
+    tblastn -num_threads 16 -out ${OUT}/${i%.*}.ref.blast -outfmt 6 -query ${OUT}/${i%.*}.faa -db ${DIR}/${reference} -max_target_seqs 1
+
     /home/ark/MAB/bin/crystalomics-local/blast2summary.py -db ${DIR}/${reference} -b ${OUT}/${i%.*}.ref.blast -f ${OUT}/${i%.*}.faa -o ${OUT}/${i%.*}.ref.summary.csv
     diamond blastp --threads 16 -d /home/ark/databases/nr.dmnd -q ${OUT}/${i%.*}.faa -o ${OUT}/${i%.*}.nr.blastp -f 6 qseqid sseqid pident length evalue bitscore stitle qseq sseq --max-target-seqs 10 --evalue 100
     /home/ark/MAB/bin/crystalomics-local/nr2summary.py -b1 ${OUT}/${i%.*}.nr.blastp -b2 ${OUT}/${i%.*}.ref.blast -o ${OUT}/${i%.*}.nr.summary.tsv --nr-max 1
