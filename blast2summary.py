@@ -8,7 +8,6 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Summarize BLAST output with peptide and subject info.")
     parser.add_argument("-b", "--blast", required=True, help="BLAST output file (outfmt 6)")
     parser.add_argument("-f", "--fasta", required=True, help="FASTA file of peptide query sequences")
-    parser.add_argument("-db", "--database", required=True, help="FASTA database used in BLAST (contains subject sequences)")
     parser.add_argument("-o", "--output", required=True, help="Output CSV file")
     return parser.parse_args()
 
@@ -22,7 +21,6 @@ def main():
     args = parse_args()
 
     query_seqs = load_fasta_sequences(args.fasta)
-    subject_headers = load_fasta_headers(args.database)
 
     with open(args.blast) as blast_file, open(args.output, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)

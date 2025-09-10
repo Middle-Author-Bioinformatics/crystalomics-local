@@ -18,7 +18,7 @@ parser.add_argument('-cif', type=str, help='input .cif file', default="bowtie2")
 
 parser.add_argument('-faa', type=str, help='output peptide predictions in FASTA format', default="")
 
-parser.add_argument('-txt', type=str, help='output text-file with peptide predictions for each chain', default="")
+parser.add_argument('-txt', type=str, help='output text-file with peptide predictions for each chain', default="NA")
 
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
@@ -36,7 +36,8 @@ three_to_one = {
 
 # Load the CIF file
 model = gemmi.read_structure(args.cif)
-out = open(args.txt, "w")
+if args.txt != "NA":
+    out = open(args.txt, "w")
 out2 = open(args.faa, "w")
 
 # Extract sequences
@@ -46,6 +47,9 @@ for chain in model[0]:  # Access the first model in the structure
         # print(f"Chain {chain.name}: {sequence}")
         out2.write(">Chain_" + chain.name + "\n")
         out2.write(sequence + "\n")
-    out.write(f"Chain {chain.name}: {sequence}\n")
-out.close()
+    if args.txt != "NA":
+        out.write(f"Chain {chain.name}: {sequence}\n")
+
+if args.txt != "NA":
+    out.close()
 out2.close()

@@ -14,10 +14,28 @@ DIR=/home/ark/MAB/crystalomics/${ID}
 OUT=/home/ark/MAB/crystalomics/completed/${ID}-results
 mkdir -p ${OUT}
 
+# --- helper: detect if FASTA is nucleotide (ACGTN only in first non-header seq chunk)
+is_nucleotide_fasta () {
+  local fasta="$1"
+  # grab first non-header line(s), strip whitespace, limit to 2000 chars, then test
+  local sample
+  sample=$(grep -v '^>' "$fasta" | tr -d ' \t\r\n' | head -c 2000 || true)
+  if [[ -z "$sample" ]]; then
+    # empty sequence? assume nucleotide to be conservative
+    return 0
+  fi
+  if [[ "$sample" =~ ^[ACGTNacgtn]+$ ]]; then
+    return 0  # nucleotide
+  else
+    return 1  # protein
+  fi
+}
 
 name=$(grep 'Name' ${DIR}/form-data.txt | cut -d ' ' -f2)
 email=$(grep 'Email' ${DIR}/form-data.txt | cut -d ' ' -f2)
-reference=$(grep 'Input' ${DIR}/form-data.txt | cut -d ' ' -f3)
+# Multiple references supported: collect all third fields on lines beginning with "Input"
+mapfile -t REF_FILES < <(awk '/^Input/ {print $3}' "${DIR}/form-data.txt")
+
 cif=$(grep 'CIF' ${DIR}/form-data.txt | cut -d ' ' -f3)
 
 # Set PATH to include Conda and script locations
@@ -35,18 +53,39 @@ sleep 5
 # **************************************************************************************************
 # **************************************************************************************************
 
-for i in ${cif}; do
-    echo "Processing CIF file: ${i}"
-    /home/ark/MAB/bin/crystalomics-local/cif-peptide-extract.py -cif ${DIR}/${i} -faa ${OUT}/${i%.*}.faa -txt ${OUT}/${i%.*}.txt
+/home/ark/MAB/bin/crystalomics-local/cif-peptide-extract.py -cif ${DIR}/${cif} -faa ${OUT}/${cif%.*}.faa
 
+# --- loop over each reference in form-data.txt
+for ref_rel in "${REF_FILES[@]}"; do
+  ref_path="${DIR}/${ref_rel}"
+  ref_base="$(basename "${ref_rel}")"
+  ref_label="${ref_base%.*}"
+  out_blast="${OUT}/${ref_label}.blast"
 
-    makeblastdb -dbtype prot -in ${DIR}/${reference} -out ${DIR}/${reference}
-    blastp -num_threads 16 -out ${OUT}/${i%.*}.ref.blast -outfmt 6 -query ${OUT}/${i%.*}.faa -db ${DIR}/${reference} -max_target_seqs 1
+  echo "Preparing DB for reference: ${ref_rel}"
 
-    /home/ark/MAB/bin/crystalomics-local/blast2summary.py -db ${DIR}/${reference} -b ${OUT}/${i%.*}.ref.blast -f ${OUT}/${i%.*}.faa -o ${OUT}/${i%.*}.ref.summary.csv
-    diamond blastp --threads 16 -d /home/ark/databases/nr.dmnd -q ${OUT}/${i%.*}.faa -o ${OUT}/${i%.*}.nr.blastp -f 6 qseqid sseqid pident length evalue bitscore stitle qseq sseq --max-target-seqs 10 --evalue 100
-    /home/ark/MAB/bin/crystalomics-local/nr2summary.py -b1 ${OUT}/${i%.*}.nr.blastp -b2 ${OUT}/${i%.*}.ref.blast -o ${OUT}/${i%.*}.nr.summary.tsv --nr-max 1
+  if is_nucleotide_fasta "${ref_path}"; then
+    echo "Detected nucleotide DB → makeblastdb -dbtype nucl + tblastn"
+    makeblastdb -in "${ref_path}" -dbtype nucl -out "${ref_path}" 1>&2
+    tblastn -num_threads 16 \
+            -out "${out_blast}" -outfmt 6 \
+            -query "${OUT}/${ref_label}.faa" \
+            -db "${ref_path}" \
+            -max_target_seqs 1
+  else
+    echo "Detected protein DB → makeblastdb -dbtype prot + blastp"
+    makeblastdb -in "${ref_path}" -dbtype prot -out "${ref_path}" 1>&2
+    blastp -num_threads 16 \
+           -out "${out_blast}" -outfmt 6 \
+           -query "${OUT}/${ref_label}.faa" \
+           -db "${ref_path}" \
+           -max_target_seqs 1
+  fi
+
+  BLAST_FILES+=("${out_blast}")
 done
+
+/home/ark/MAB/bin/crystalomics-local/blast2summary.py -f ${OUT}/${cif%.*}.faa -o ${OUT}/${i%.*}.ref.summary.csv BLAST_FILES
 
 
 # **************************************************************************************************
@@ -102,6 +141,4 @@ sleep 5
 
 #conda deactivate
 echo "Crystalomics completed successfully."
-
-
 
