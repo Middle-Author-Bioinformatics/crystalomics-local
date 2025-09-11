@@ -86,7 +86,7 @@ for ref_rel in "${REF_FILES[@]}"; do
   BLAST_FILES+=("${out_blast}")
 done
 
-/home/ark/MAB/bin/crystalomics-local/blast2summary.v2.py -f ${OUT}/${cif%.*}.faa -o ${OUT}/${cif%.*}.ref.summary.csv -b BLAST_FILES
+/home/ark/MAB/bin/crystalomics-local/blast2summary.v2.py -f ${OUT}/${cif%.*}.faa -o ${OUT}/${cif%.*}.ref.summary.csv -b "${BLAST_FILES[@]}"
 
 
 # **************************************************************************************************
