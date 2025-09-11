@@ -93,8 +93,8 @@ def main():
     """Main function to check for new folders and trigger processing."""
     folder_name = check_for_new_folders()
     if folder_name:
-        pass
-        # process_folder(folder_name)
+        # pass
+        process_folder(folder_name)
 
 if __name__ == "__main__":
     main()
