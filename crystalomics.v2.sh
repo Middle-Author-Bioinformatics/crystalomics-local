@@ -88,6 +88,8 @@ done
 
 /home/ark/MAB/bin/crystalomics-local/blast2summary.v2.py -f ${OUT}/${cif%.*}.faa -o ${OUT}/${cif%.*}.ref.summary.csv -b "${BLAST_FILES[@]}"
 
+# remove blast files
+rm -f "${BLAST_FILES[@]}"
 
 # **************************************************************************************************
 # **************************************************************************************************
