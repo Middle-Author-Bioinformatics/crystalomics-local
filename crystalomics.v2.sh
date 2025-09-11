@@ -70,7 +70,7 @@ for ref_rel in "${REF_FILES[@]}"; do
     makeblastdb -in "${ref_path}" -dbtype nucl -out "${ref_path}" 1>&2
     tblastn -num_threads 16 \
             -out "${out_blast}" -outfmt 6 \
-            -query "${OUT}/${ref_label}.faa" \
+            -query "${OUT}/${cif%.*}.faa" \
             -db "${ref_path}" \
             -max_target_seqs 1
   else
@@ -78,7 +78,7 @@ for ref_rel in "${REF_FILES[@]}"; do
     makeblastdb -in "${ref_path}" -dbtype prot -out "${ref_path}" 1>&2
     blastp -num_threads 16 \
            -out "${out_blast}" -outfmt 6 \
-           -query "${OUT}/${ref_label}.faa" \
+           -query "${OUT}/${cif%.*}.faa" \
            -db "${ref_path}" \
            -max_target_seqs 1
   fi
