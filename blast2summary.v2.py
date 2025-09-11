@@ -27,6 +27,12 @@ def parse_args():
     )
     return p.parse_args()
 
+def parse_float_safe(x: str) -> float:
+    try:
+        return float(x)
+    except Exception:
+        return float("inf")
+
 def load_fasta_sequences(fasta_file: str) -> Dict[str, str]:
     return {rec.id: str(rec.seq) for rec in SeqIO.parse(fasta_file, "fasta")}
 
@@ -77,11 +83,21 @@ def parse_outfmt6_lines(lines: Iterable[str], seqs: Dict[str, str], blast_prefix
             evalue   = fields[10]
         except (IndexError, ValueError):
             continue
+        evalue_val = parse_float_safe(evalue)
+        if evalue_val > 1.0:
+            continue  # skip hits with evalue > 1
+
+        bitscore_val = parse_float_safe(fields[11])
+        if bitscore_val == float("inf"):
+            continue
+
         peptide_seq = seqs.get(qid, "NA")
         subject_locus = sid
-        subject_coords = make_subject_coords(sid, fields[8], fields[9])
+        sstart = fields[8]
+        send = fields[9]
+        subject_coords = make_subject_coords(sid, sstart, send)
 
-        yield [
+        yield qid, [
             qid,
             sid,
             subject_locus,
@@ -90,8 +106,35 @@ def parse_outfmt6_lines(lines: Iterable[str], seqs: Dict[str, str], blast_prefix
             aln_len,
             evalue,
             peptide_seq,
-            blast_prefix
+            blast_prefix,
+            bitscore_val  # keep bitscore at end for ranking
         ]
+
+def better_hit(row_a: list, row_b: list) -> list:
+    # last element is bitscore
+    bits_a, bits_b = row_a[-1], row_b[-1]
+    if bits_a != bits_b:
+        return row_a if bits_a > bits_b else row_b
+
+    e_a, e_b = parse_float_safe(row_a[6]), parse_float_safe(row_b[6])
+    if e_a != e_b:
+        return row_a if e_a < e_b else row_b
+
+    try:
+        pid_a, pid_b = float(row_a[4]), float(row_b[4])
+    except Exception:
+        pid_a = pid_b = 0
+    if pid_a != pid_b:
+        return row_a if pid_a > pid_b else row_b
+
+    try:
+        len_a, len_b = int(row_a[5]), int(row_b[5])
+    except Exception:
+        len_a = len_b = 0
+    if len_a != len_b:
+        return row_a if len_a > len_b else row_b
+
+    return row_a
 
 def main():
     args = parse_args()
@@ -111,11 +154,19 @@ def main():
             "blast_prefix"
         ])
 
+        best_by_query = {}
+
         for bpath in args.blast:
             prefix = infer_blast_prefix(bpath)
             with open(bpath, "r") as bf:
-                for row in parse_outfmt6_lines(bf, query_seqs, prefix):
-                    writer.writerow(row)
+                for qid, row in parse_outfmt6_lines(bf, query_seqs, prefix):
+                    if qid not in best_by_query:
+                        best_by_query[qid] = row
+                    else:
+                        best_by_query[qid] = better_hit(best_by_query[qid], row)
+
+        for qid in sorted(best_by_query.keys()):
+            writer.writerow(best_by_query[qid][:-1])  # drop bitscore before writing
 
 if __name__ == "__main__":
     main()
