@@ -45,6 +45,16 @@ def infer_blast_prefix(path: str) -> str:
     # Fallback: strip only the final extension
     return os.path.splitext(base)[0]
 
+def make_subject_coords(sid: str, sstart_raw: str, send_raw: str) -> str:
+    """Return 'sid_start_end' with start <= end; handles non-integer gracefully."""
+    try:
+        sstart = int(sstart_raw)
+        send = int(send_raw)
+        start, end = (sstart, send) if sstart <= send else (send, sstart)
+        return f"{sid}_{start}_{end}"
+    except Exception:
+        return f"{sid}_{sstart_raw}_{send_raw}"
+
 def parse_outfmt6_lines(lines: Iterable[str], seqs: Dict[str, str], blast_prefix: str):
     """
     Yield rows matching the output header:
@@ -68,7 +78,20 @@ def parse_outfmt6_lines(lines: Iterable[str], seqs: Dict[str, str], blast_prefix
         except (IndexError, ValueError):
             continue
         peptide_seq = seqs.get(qid, "NA")
-        yield [qid, sid, pident, aln_len, evalue, peptide_seq, blast_prefix]
+        subject_locus = sid
+        subject_coords = make_subject_coords(sid, fields[8], fields[9])
+
+        yield [
+            qid,
+            sid,
+            subject_locus,
+            subject_coords,
+            pident,
+            aln_len,
+            evalue,
+            peptide_seq,
+            blast_prefix
+        ]
 
 def main():
     args = parse_args()
@@ -76,7 +99,17 @@ def main():
 
     with open(args.output, "w", newline="") as outfh:
         writer = csv.writer(outfh)
-        writer.writerow(["query_id", "subject_id", "ID", "aln_len", "evalue", "peptide_seq", "blast_prefix"])
+        writer.writerow([
+            "query_id",
+            "subject_id",
+            "subject_locus",
+            "subject_coords",
+            "ID",
+            "aln_len",
+            "evalue",
+            "peptide_seq",
+            "blast_prefix"
+        ])
 
         for bpath in args.blast:
             prefix = infer_blast_prefix(bpath)
