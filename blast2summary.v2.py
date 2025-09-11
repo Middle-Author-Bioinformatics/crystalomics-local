@@ -9,10 +9,14 @@ def parse_args():
     p = argparse.ArgumentParser(
         description="Summarize one or more BLAST (outfmt 6) files; include peptide sequence and BLAST file prefix."
     )
+
     p.add_argument(
-        "-b", "--blast", action="append", required=True,
-        help="BLAST output file (outfmt 6). Repeat for multiple files."
+        "-b", "--blast",
+        nargs="+",  # <— accept one or more BLAST files
+        required=True,
+        help="One or more tabular BLAST files (outfmt 6)."
     )
+
     p.add_argument(
         "-f", "--fasta", required=True,
         help="FASTA file of peptide query sequences (the BLAST query set)."
