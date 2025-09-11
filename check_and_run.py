@@ -82,7 +82,7 @@ def process_folder(folder_name):
     download_folder(BUCKET_NAME, folder_name, local_dir)
 
     # Run crystalomics.sh script with folder_name as argument
-    crystalomics_script_path = '/home/ark/MAB/bin/crystalomics-local/crystalomics.sh'
+    crystalomics_script_path = '/home/ark/MAB/bin/crystalomics-local/crystalomics.v2.sh'
     try:
         subprocess.run([crystalomics_script_path, folder_name], check=True)
         print(f"Successfully processed folder {folder_name} using crystalomics.sh.")
@@ -93,7 +93,8 @@ def main():
     """Main function to check for new folders and trigger processing."""
     folder_name = check_for_new_folders()
     if folder_name:
-        process_folder(folder_name)
+        pass
+        # process_folder(folder_name)
 
 if __name__ == "__main__":
     main()
