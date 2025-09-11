@@ -36,8 +36,7 @@ three_to_one = {
 
 # Load the CIF file
 model = gemmi.read_structure(args.cif)
-if args.txt != "NA":
-    out = open(args.txt, "w")
+out = open(args.txt, "w")
 out2 = open(args.faa, "w")
 
 # Extract sequences
@@ -47,9 +46,7 @@ for chain in model[0]:  # Access the first model in the structure
         # print(f"Chain {chain.name}: {sequence}")
         out2.write(">Chain_" + chain.name + "\n")
         out2.write(sequence + "\n")
-    if args.txt != "NA":
         out.write(f"Chain {chain.name}: {sequence}\n")
 
-if args.txt != "NA":
-    out.close()
+out.close()
 out2.close()

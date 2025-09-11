@@ -53,7 +53,8 @@ sleep 5
 # **************************************************************************************************
 # **************************************************************************************************
 
-/home/ark/MAB/bin/crystalomics-local/cif-peptide-extract.py -cif ${DIR}/${cif} -faa ${OUT}/${cif%.*}.faa
+echo /home/ark/MAB/bin/crystalomics-local/cif-peptide-extract.py -cif ${DIR}/${cif} -faa ${OUT}/${cif%.*}.faa -txt ${OUT}/${cif%.*}.txt
+/home/ark/MAB/bin/crystalomics-local/cif-peptide-extract.py -cif ${DIR}/${cif} -faa ${OUT}/${cif%.*}.faa -txt ${OUT}/${cif%.*}.txt
 
 # --- loop over each reference in form-data.txt
 for ref_rel in "${REF_FILES[@]}"; do
