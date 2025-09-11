@@ -34,7 +34,7 @@ is_nucleotide_fasta () {
 name=$(grep 'Name' ${DIR}/form-data.txt | cut -d ' ' -f2)
 email=$(grep 'Email' ${DIR}/form-data.txt | cut -d ' ' -f2)
 # Multiple references supported: collect all third fields on lines beginning with "Input"
-mapfile -t REF_FILES < <(awk '/^Input/ {print $3}' "${DIR}/form-data.txt")
+mapfile -t REF_FILES < <(awk '/^Ref/ {print $3}' "${DIR}/form-data.txt")
 
 cif=$(grep 'CIF' ${DIR}/form-data.txt | cut -d ' ' -f3)
 
@@ -85,7 +85,7 @@ for ref_rel in "${REF_FILES[@]}"; do
   BLAST_FILES+=("${out_blast}")
 done
 
-/home/ark/MAB/bin/crystalomics-local/blast2summary.py -f ${OUT}/${cif%.*}.faa -o ${OUT}/${i%.*}.ref.summary.csv BLAST_FILES
+/home/ark/MAB/bin/crystalomics-local/blast2summary.py -f ${OUT}/${cif%.*}.faa -o ${OUT}/${cif%.*}.ref.summary.csv BLAST_FILES
 
 
 # **************************************************************************************************
