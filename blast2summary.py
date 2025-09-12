@@ -21,7 +21,7 @@ def main():
     args = parse_args()
 
     query_seqs = load_fasta_sequences(args.fasta)
-
+    dups = []
     with open(args.blast) as blast_file, open(args.output, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["query_id", "subject_id", "ID", "aln_len", "evalue", "peptide_seq"])
@@ -36,7 +36,9 @@ def main():
             ID = fields[2]
             aln = fields[3]
 
-            writer.writerow([query_id, subject_id, ID, aln, evalue, peptide_seq])
+            if query_id not in dups:
+                dups.append(query_id)
+                writer.writerow([query_id, subject_id, ID, aln, evalue, peptide_seq])
 
 if __name__ == "__main__":
     main()

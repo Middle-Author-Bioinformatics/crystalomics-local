@@ -71,16 +71,14 @@ for ref_rel in "${REF_FILES[@]}"; do
     tblastn -num_threads 16 \
             -out "${out_blast}" -outfmt 6 \
             -query "${OUT}/${cif%.*}.faa" \
-            -db "${ref_path}" \
-            -max_target_seqs 1
+            -db "${ref_path}"
   else
     echo "Detected protein DB → makeblastdb -dbtype prot + blastp"
     makeblastdb -in "${ref_path}" -dbtype prot -out "${ref_path}" 1>&2
     blastp -num_threads 16 \
            -out "${out_blast}" -outfmt 6 \
            -query "${OUT}/${cif%.*}.faa" \
-           -db "${ref_path}" \
-           -max_target_seqs 1
+           -db "${ref_path}"
   fi
 
   BLAST_FILES+=("${out_blast}")
