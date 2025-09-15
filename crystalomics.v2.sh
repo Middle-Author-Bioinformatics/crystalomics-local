@@ -87,7 +87,7 @@ done
 /home/ark/MAB/bin/crystalomics-local/blast2summary.v2.py -f ${OUT}/${cif%.*}.faa -o ${OUT}/${cif%.*}.ref.summary.csv -b "${BLAST_FILES[@]}"
 
 diamond blastp --threads 16 -d /home/ark/databases/nr.dmnd -q ${OUT}/${cif%.*}.faa -o ${OUT}/${cif%.*}.faa.nr.blastp -f 6 qseqid sseqid pident length evalue bitscore stitle qseq sseq --max-target-seqs 10 --evalue 100
-/home/ark/MAB/bin/crystalomics-local/nr2summary.v2.py -b1 ${OUT}/${cif%.*}.nr.blastp -b2 ${OUT}/${cif%.*}.ref.summary.csv -o ${OUT}/${cif%.*}.final.summary.csv --nr-max 1
+python /home/ark/MAB/bin/crystalomics-local/nr2summary.v2.py -b1 ${OUT}/${cif%.*}.nr.blastp -b2 ${OUT}/${cif%.*}.ref.summary.csv -o ${OUT}/${cif%.*}.final.summary.csv --nr-max 1
 
 # remove blast files
 rm -f "${BLAST_FILES[@]}"
@@ -105,7 +105,7 @@ fi
 
 # Archive results
 mv /home/ark/MAB/crystalomics/completed/${ID}-results ./${ID}-results
-tar -cf ${ID}-results.tar ${ID}-results && gzip ${ID}-results.tar
+tar -cf ${ID}-results.tar ${ID}-results && gzip --keep ${ID}-results.tar
 
 # Upload results to S3 and generate presigned URL
 results_tar="${ID}-results.tar.gz"
