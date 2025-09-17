@@ -90,7 +90,7 @@ diamond blastp --threads 16 -d /home/ark/databases/nr.dmnd -q ${OUT}/${cif%.*}.f
 python /home/ark/MAB/bin/crystalomics-local/nr2summary.v2.py -b1 ${OUT}/${cif%.*}.nr.blastp -b2 ${OUT}/${cif%.*}.ref.summary.csv -o ${OUT}/${cif%.*}.final.summary.csv --nr-max 1
 
 # remove blast files
-#rm -f "${BLAST_FILES[@]}"
+rm -f "${BLAST_FILES[@]}"
 
 # **************************************************************************************************
 # **************************************************************************************************
