@@ -84,7 +84,7 @@ for ref_rel in "${REF_FILES[@]}"; do
   BLAST_FILES+=("${out_blast}")
 done
 
-/home/ark/MAB/bin/crystalomics-local/blast2summary.v2.py -f ${OUT}/${cif%.*}.faa -o ${OUT}/${cif%.*}.ref.summary.csv -b "${BLAST_FILES[@]}"
+/home/ark/MAB/bin/crystalomics-local/blast2summary.v3.py -f ${OUT}/${cif%.*}.faa -o ${OUT}/${cif%.*}.ref.summary.csv -b "${BLAST_FILES[@]}" --max-evalue 10 --min-bitscore 0
 
 diamond blastp --threads 16 -d /home/ark/databases/nr.dmnd -q ${OUT}/${cif%.*}.faa -o ${OUT}/${cif%.*}.nr.blastp -f 6 qseqid sseqid pident length evalue bitscore stitle qseq sseq --max-target-seqs 10 --evalue 100
 python /home/ark/MAB/bin/crystalomics-local/nr2summary.v2.py -b1 ${OUT}/${cif%.*}.nr.blastp -b2 ${OUT}/${cif%.*}.ref.summary.csv -o ${OUT}/${cif%.*}.final.summary.csv --nr-max 1
